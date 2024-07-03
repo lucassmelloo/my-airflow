@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.macros import ds_add
 
 import os
@@ -15,9 +16,15 @@ with DAG(
     schedule_interval='0 0 * * 1'
 ) as dag:
     
-    task_1 = BashOperator(
+    create_images_folder = BashOperator(
         task_id='create_dag_folder',
         bash_command = 'mkdir -p ./shared/nasa_photos/week={{data_interval_end}}'
+    )
+
+    test_db_connection = MySqlOperator(
+        task_id='test_db_connection',
+        mysql_conn_id= 'mysql_docker_localhost',
+        sql='SELECT 1;'
     )
 
     def get_key():
@@ -33,7 +40,7 @@ with DAG(
             print(f"Erro ao decodificar o JSON no arquivo {config_path}.")
             return None
 
-    def extract_data(data_interval_end):
+    """ def extract_data(data_interval_end):
         api_key = get_key()
 
         URL = f'https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/latest_photos?api_key={api_key}'
@@ -56,6 +63,6 @@ with DAG(
         op_kwargs={
             'data_interval_end': ''
         }
-    )
+    ) """
 
-    task_1 >> task_2
+    create_images_folder >> test_db_connection
