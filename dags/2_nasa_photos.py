@@ -21,7 +21,7 @@ with DAG(
     
     create_images_folder = BashOperator(
         task_id='create_dag_folder',
-        bash_command = 'mkdir -p ./shared/nasa_photos/week={{data_interval_end}}'
+        bash_command = 'mkdir -p ./shared/nasa_photos/photos'
     )
 
     test_db_connection = MySqlOperator(
@@ -29,34 +29,6 @@ with DAG(
         mysql_conn_id= 'mysql_docker_localhost',
         sql='SELECT 1;'
     )
-    
-    @task
-    def extract_api_data():
-        nasa_config = get_config('nasa_key')
-        URL = f'https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/latest_photos?api_key={nasa_config['api_key']}'
-        
-        response = requests.get(URL)
-        if  response.status_code == 200:
-            data = response.json()
-            latest_photos = data.get('latest_photos', [])
-            return latest_photos
-        
-    @task
-    def save_image_on_folder(image_array):
-        folder_path = f'./shared/nasa_photos/week={{data_interval_end}}'
-        os.makedirs(folder_path, exist_ok=True)
-        
-        for image in image_array:
-            image_url = image['img_src']
-            image_id = image['id']
-            image_path = os.path.join(folder_path, f'{image_id}.jpg')
-            
-            response = requests.get(image_url)
-            if response.status_code == 200:
-                with open(image_path, 'wb') as file:
-                    file.write(response.content)
-            else:
-                print(f"Failed to download image {image_id}")
 
     @task
     def prepare_database_for_images():
@@ -119,10 +91,47 @@ with DAG(
                 connection.close()
                 print("Conexão ao MySQL encerrada")
     
+    @task
+    def extract_api_data():
+        nasa_config = get_config('nasa_key')
+        URL = f'https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/latest_photos?api_key={nasa_config['api_key']}'
+        
+        response = requests.get(URL)
+        if  response.status_code == 200:
+            data = response.json()
+            latest_photos = data.get('latest_photos', [])
+            return latest_photos
+        
+    @task
+    def save_image_on_folder(image_array):
+        folder_path = f'./shared/nasa_photos/photos'
+        os.makedirs(folder_path, exist_ok=True)
+        
+        for image in image_array:
+            image_url = image['img_src']
+            image_id = image['id']
+            image_path = os.path.join(folder_path, f'{image_id}.jpg')
+            image['img_path'] = os.path.join(folder_path, f'{image_id}.jpg')
+            
+            response = requests.get(image_url)
+            if response.status_code == 200:
+                with open(image_path, 'wb') as file:
+                    file.write(response.content)
+            else:
+                print(f"Failed to download image {image_id}")
+
+        return image_array
+
+    @task
+    def save_image_on_database(image_array):
+        print(image_array)
+    
+    
     extracted_data = extract_api_data()
-    save_images = save_image_on_folder(extracted_data)
     preare_database = prepare_database_for_images()
+    saving_images_on_folder = save_image_on_folder(extracted_data)
+    saving_images_on_database = save_image_on_database(saving_images_on_folder)
 
     create_images_folder >> preare_database
     test_db_connection >> preare_database
-    preare_database >> extracted_data >> save_images
+    preare_database >> extracted_data >> saving_images_on_folder >> saving_images_on_database
