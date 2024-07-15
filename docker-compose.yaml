@@ -244,7 +244,7 @@ services:
       _AIRFLOW_DB_MIGRATE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-Luc@sbr98}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
@@ -269,10 +269,10 @@ services:
     ports:
       - "3307:3306" # Mapeia a porta 3307 do host para a porta 3306 do container
     environment:
-      MYSQL_ROOT_PASSWORD: lucasbr98
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: dw
       MYSQL_USER: dw
-      MYSQL_PASSWORD: lucasbr98
+      MYSQL_PASSWORD: root
     volumes:
       - mysql_data:/var/lib/mysql
 
