@@ -5,8 +5,9 @@ from airflow.decorators import task, dag
 from airflow.providers.mysql.operators.mysql import MySqlOperator
 from helpers.helper import get_config
 
-import mysql.connector
 from mysql.connector import Error
+import pprint
+import mysql.connector
 import os
 import json
 import pendulum
@@ -72,7 +73,7 @@ with DAG(
                         (
                             id BIGINT AUTO_INCREMENT PRIMARY KEY,
                             id_photo INT UNIQUE,
-                            image BLOB,
+                            image LONGBLOB,
                             json TEXT,
                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                             UNIQUE(id_photo)
@@ -124,8 +125,55 @@ with DAG(
 
     @task
     def save_image_on_database(image_array):
-        print(image_array)
-    
+        mysql_infos = get_config('mysql_nasa_connection')
+
+        try:
+            connection = mysql.connector.connect(
+                host=mysql_infos["host"],
+                port=mysql_infos["port"],
+                user=mysql_infos["user"],
+                password=mysql_infos["password"],
+                database=mysql_infos["schema"]
+            )
+            
+        except Error as e:
+            print(f"Erro ao conectar ao MySQL: {e}")
+
+        try:
+            cursor = connection.cursor()
+            for image in image_array:
+
+                cursor.execute(
+                    '''
+                        SELECT COUNT(*)
+                        FROM nasa_photos
+                        WHERE id_photo = %s
+                    ''',( image['id'],)
+                )
+
+                result = cursor.fetchone()
+                
+                if result[0]==0 :
+
+                    with open(image['img_path'], 'rb') as file:
+                        photo_content = file.read()
+                    
+                    cursor.execute(
+                        '''
+                            INSERT INTO nasa_photos (id_photo, image, json, created_at)
+                            VALUES (%s,%s,%s,%s)
+                        ''',
+                        (image["id"], photo_content ,json.dumps(image), pendulum.today().to_datetime_string())
+                    )
+
+                    connection.commit()
+
+                else:
+                    continue
+
+        except Error as e:
+            print(f"Erro inserir registros no MySQL: {e}")
+
     
     extracted_data = extract_api_data()
     preare_database = prepare_database_for_images()
