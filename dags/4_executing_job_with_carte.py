@@ -13,13 +13,13 @@ with DAG(
 
     tarefa_4 = BashOperator(
         task_id='create_dag_folder',
-        bash_command = 'mkdir -p /opt/airflow/shared/primeiro_dag'
+        bash_command = 'mkdir -p /opt/airflow/shared/'
     )
-    tarefa_5 = BashOperator(
-        task_id='create_folder_task',
-        bash_command = 'mkdir -p /opt/airflow/shared/primeiro_dag/{{data_interval_end}}'
+    tarefa_5 = CarteJobOperator(
+        pdi_conn_id='pentaho_server',
+        task_id='executing_dag_with_airflow' ,
+        job="C:\Carga_VendasDiarias_e_Orcamento.kjb"
     )
 
-    tarefa_1 >> [tarefa_2,tarefa_3]
-    tarefa_3 >> tarefa_4
+
     tarefa_4 >> tarefa_5
