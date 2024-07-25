@@ -3,6 +3,7 @@ from airflow.models import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 from airflow_pentaho.operators.carte import CarteJobOperator
+from airflow.decorators import task
 
 with DAG(
     dag_id='4_executing_job_with_carte',
@@ -18,8 +19,11 @@ with DAG(
     tarefa_5 = CarteJobOperator(
         pdi_conn_id='pentaho_server',
         task_id='executing_dag_with_airflow' ,
-        job="C:\Carga_VendasDiarias_e_Orcamento.kjb"
+        job="/Carga_VendasDiarias_e_Orcamento.kjb"
     )
 
+    @task
+    def execute_carte_job_operator():
+        URL = 'cluster:cluster@10.35.101.31:8081'
 
     tarefa_4 >> tarefa_5
