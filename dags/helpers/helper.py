@@ -2,8 +2,6 @@ import os
 import json
 
 def get_config(file_name):
-    # Configura o logging
-
     # Caminho completo para o arquivo de configuração
     config_path = os.path.join(os.path.dirname(__file__),  '../../config', f'{file_name}.json')
     try:
@@ -16,3 +14,4 @@ def get_config(file_name):
     except json.JSONDecodeError:
         print(f"Erro ao decodificar o JSON no arquivo {config_path}.")
         return None
+

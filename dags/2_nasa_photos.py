@@ -3,6 +3,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.decorators import task, dag
 from airflow.providers.mysql.operators.mysql import MySqlOperator
+from airflow.models import Variable
 from helpers.helper import get_config
 
 from mysql.connector import Error
@@ -94,10 +95,11 @@ with DAG(
     
     @task
     def extract_api_data():
-        nasa_config = get_config('nasa_key')
-        URL = f'https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/latest_photos?api_key={nasa_config['api_key']}'
-        
+        nasa_api_key = Variable.get('NASA_API_KEY')
+        URL = f'https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/latest_photos?api_key={nasa_api_key}'
+        print(URL)
         response = requests.get(URL)
+        print(response)
         if  response.status_code == 200:
             data = response.json()
             latest_photos = data.get('latest_photos', [])
