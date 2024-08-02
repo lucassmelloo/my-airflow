@@ -2,8 +2,6 @@ from airflow.models import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from airflow.providers.mysql.hooks.mysql import MySqlHook
 
 with DAG(
     '1_my_first_dag',
@@ -17,11 +15,11 @@ with DAG(
 
     task_4 = BashOperator(
         task_id='create_dag_folder',
-        bash_command = 'mkdir -p /opt/airflow/shared/primeiro_dag'
+        bash_command = 'mkdir -p /opt/airflow/shared/1_my_first_dag'
     )
     task_5 = BashOperator(
         task_id='create_folder_task',
-        bash_command = 'mkdir -p /opt/airflow/shared/primeiro_dag/{{data_interval_end}}'
+        bash_command = 'mkdir -p /opt/airflow/shared/1_my_first_dag/{{data_interval_end}}'
     )
 
     task_1 >> [task_2,task_3]

@@ -5,13 +5,13 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import os
 import sys
-from helper.scrape_imdb_charts import _get_soup, _scrape_movies, _load_to_bigQuery
+from helpers.scrape_imdb_charts import _get_soup, _scrape_movies, _load_to_bigQuery
 
 # Creating an Environmental variable for the service key configuration
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/opt/airflow/config/BigQuery/key/astute-asset-419023-604bcc14bdd5.json'
 
 default_args = {
-    'start_date': datetime.datetime.today(),
+    'start_date': datetime.today(),
     'schedule_interval': '0 0 * * *', #Run everyday at midnight
     'retries': 5,
     'retry_delay': timedelta(minutes=5) 

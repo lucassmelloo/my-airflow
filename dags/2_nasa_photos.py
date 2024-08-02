@@ -23,12 +23,12 @@ with DAG(
     
     create_images_folder = BashOperator(
         task_id='create_dag_folder',
-        bash_command = 'mkdir -p ./shared/nasa_photos/photos'
+        bash_command = 'mkdir -p ./shared/2_nasa_photos/photos'
     )
 
     test_db_connection = MySqlOperator(
         task_id='test_db_connection',
-        mysql_conn_id= 'mysql_docker_localhost',
+        mysql_conn_id= 'mysql_nasa_db',
         sql='SELECT 1;'
     )
 
@@ -107,7 +107,7 @@ with DAG(
         
     @task
     def save_image_on_folder(image_array):
-        folder_path = f'./shared/nasa_photos/photos'
+        folder_path = f'./shared/2_nasa_photos/photos'
         os.makedirs(folder_path, exist_ok=True)
         
         for image in image_array:
