@@ -12,18 +12,12 @@ with DAG(
     schedule_interval='@daily'
 ) as dag:
 
-    tarefa_4 = BashOperator(
-        task_id='create_dag_folder',
-        bash_command = 'mkdir -p /opt/airflow/shared/'
-    )
-    tarefa_5 = CarteJobOperator(
+    task = CarteJobOperator(
         pdi_conn_id='pentaho_server',
         task_id='executing_dag_with_airflow' ,
-        job="/Carga_VendasDiarias_e_Orcamento.kjb"
+        job="C:\\\\Transformations\\\\Vendas_diarias\\\\Jobs\\\\Carga_VendasDiarias_e_Orcamento.kjb"
     )
 
-    @task
-    def execute_carte_job_operator():
-        URL = 'cluster:cluster@10.35.101.31:8081'
 
-    tarefa_4 >> tarefa_5
+
+    
