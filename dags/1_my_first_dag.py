@@ -2,10 +2,11 @@ from airflow.models import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.bash import BashOperator
+from datetime import datetime
 
 with DAG(
     '1_my_first_dag',
-    start_date=days_ago(2),
+    start_date=datetime.today(),
     schedule_interval='@daily'
 ) as dag:
     

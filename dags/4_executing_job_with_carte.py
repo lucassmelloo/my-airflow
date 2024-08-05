@@ -4,11 +4,12 @@ from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 from airflow_pentaho.operators.carte import CarteJobOperator
 from airflow.decorators import task
+from datetime import datetime,timedelta
 
 with DAG(
     dag_id='4_executing_job_with_carte',
     description='Trying to execute a Job using CarteJobOperator',
-    start_date=days_ago(2),
+    start_date= datetime.today(),
     schedule_interval='@daily'
 ) as dag:
 

@@ -5,9 +5,9 @@ from airflow.decorators import task, dag
 from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.models import Variable
 from helpers.helper import get_config
+from datetime import datetime
 
 from mysql.connector import Error
-import pprint
 import mysql.connector
 import os
 import json
@@ -17,7 +17,7 @@ import requests
 
 with DAG(
     "2_nasa_photos",
-    start_date=pendulum.datetime(2024, 5, 6, tz="UTC"),
+    start_date=datetime.today(),
     schedule_interval='0 0 * * 1'
 ) as dag:
     
