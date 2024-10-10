@@ -3,8 +3,8 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.decorators import task, dag
 from airflow.providers.mysql.operators.mysql import MySqlOperator
+from airflow.providers.mysql.hooks.mysql import MySqlHook
 from airflow.models import Variable
-from helpers.helper import get_config
 from datetime import datetime
 
 from mysql.connector import Error
@@ -34,16 +34,10 @@ with DAG(
 
     @task
     def prepare_database_for_images():
-        mysql_infos = get_config('mysql_nasa_connection')
 
         try:
-            connection = mysql.connector.connect(
-                host=mysql_infos["host"],
-                port=mysql_infos["port"],
-                user=mysql_infos["user"],
-                password=mysql_infos["password"],
-                database=mysql_infos["schema"]
-            )
+            mysql_hook = MySqlHook(mysql_conn_id='mysql_nasa_db')
+            connection = mysql_hook.get_conn()
             
         except Error as e:
              print(f"Erro ao conectar ao MySQL: {e}")
@@ -52,6 +46,8 @@ with DAG(
 
             print(f"Verificando existencia da tabela...")
             cursor = connection.cursor()
+            cursor.execute("SELECT DATABASE();")
+            schema = cursor.fetchone()[0]
             cursor.execute(
                 '''
                     SELECT COUNT(*)
@@ -59,7 +55,7 @@ with DAG(
                     WHERE table_schema = %s
                     AND table_name = %s;
                 ''', 
-                (mysql_infos["schema"],'nasa_photos')
+                (schema,'nasa_photos')
             )
             
             result = cursor.fetchone()
@@ -88,8 +84,9 @@ with DAG(
             print(f"Erro ao conectar ao MySQL: {e}")
             
         finally:
-            if connection.is_connected():
+            if cursor:
                 cursor.close()
+            if connection:
                 connection.close()
                 print("Conexão ao MySQL encerrada")
     
@@ -127,20 +124,13 @@ with DAG(
 
     @task
     def save_image_on_database(image_array):
-        mysql_infos = get_config('mysql_nasa_connection')
-
         try:
-            connection = mysql.connector.connect(
-                host=mysql_infos["host"],
-                port=mysql_infos["port"],
-                user=mysql_infos["user"],
-                password=mysql_infos["password"],
-                database=mysql_infos["schema"]
-            )
+            mysql_hook = MySqlHook(mysql_conn_id='mysql_nasa_db')
+            connection = mysql_hook.get_conn()
             
         except Error as e:
-            print(f"Erro ao conectar ao MySQL: {e}")
-
+             print(f"Erro ao conectar ao MySQL: {e}")
+    
         try:
             cursor = connection.cursor()
             for image in image_array:
