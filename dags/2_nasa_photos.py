@@ -7,8 +7,7 @@ from airflow.providers.mysql.hooks.mysql import MySqlHook
 from airflow.models import Variable
 from datetime import datetime
 
-from mysql.connector import Error
-import mysql.connector
+
 import os
 import json
 import pendulum
