@@ -101,7 +101,7 @@ services:
       interval: 10s
       retries: 5
       start_period: 5s
-    restart: always
+    restart: no
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
@@ -115,10 +115,11 @@ services:
       timeout: 30s
       retries: 50
       start_period: 30s
-    restart: always
+    restart: no
 
   airflow-apiserver:
     <<: *airflow-common
+    build: .
     command: api-server
     ports:
       - "8080:8080"
@@ -128,7 +129,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: no
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -136,6 +137,7 @@ services:
 
   airflow-scheduler:
     <<: *airflow-common
+    build: .
     command: scheduler
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
@@ -143,7 +145,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: no
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -151,6 +153,7 @@ services:
 
   airflow-dag-processor:
     <<: *airflow-common
+    build: .
     command: dag-processor
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
@@ -158,7 +161,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: no
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -166,6 +169,7 @@ services:
 
   airflow-worker:
     <<: *airflow-common
+    build: .
     command: celery worker
     healthcheck:
       # yamllint disable rule:line-length
@@ -181,7 +185,7 @@ services:
       # Required to handle warm shutdown of the celery workers properly
       # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
       DUMB_INIT_SETSID: "0"
-    restart: always
+    restart: no
     depends_on:
       <<: *airflow-common-depends-on
       airflow-apiserver:
@@ -191,6 +195,7 @@ services:
 
   airflow-triggerer:
     <<: *airflow-common
+    build: .
     command: triggerer
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
@@ -198,7 +203,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: no
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -206,6 +211,7 @@ services:
 
   airflow-init:
     <<: *airflow-common
+    build: .
     entrypoint: /bin/bash
     # yamllint disable rule:line-length
     command:
@@ -298,8 +304,10 @@ services:
 
   airflow-cli:
     <<: *airflow-common
+    build: .
     profiles:
       - debug
+
     environment:
       <<: *airflow-common-env
       CONNECTION_CHECK_MAX_COUNT: "0"
@@ -327,7 +335,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: no
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
